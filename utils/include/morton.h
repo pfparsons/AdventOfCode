@@ -1,3 +1,77 @@
+#include <cstdint>
+
+static inline uint64_t interleave_uint32_with_zeros(uint32_t input)  {
+    uint64_t word = input;
+    word = (word ^ (word << 16)) & 0x0000ffff0000ffff;
+    word = (word ^ (word << 8 )) & 0x00ff00ff00ff00ff;
+    word = (word ^ (word << 4 )) & 0x0f0f0f0f0f0f0f0f;
+    word = (word ^ (word << 2 )) & 0x3333333333333333;
+    word = (word ^ (word << 1 )) & 0x5555555555555555;
+    return word;
+}
+
+static inline uint32_t interleave_uint16_with_zeros(uint16_t input)  {
+    uint64_t word = input;
+    word = (word ^ (word << 8 )) & 0x00ff00ff;
+    word = (word ^ (word << 4 )) & 0x0f0f0f0f;
+    word = (word ^ (word << 2 )) & 0x33333333;
+    word = (word ^ (word << 1 )) & 0x55555555;
+    return word;
+}
+
+static inline uint32_t deinterleave_lowuint32(uint64_t word) {
+    word &= 0x5555555555555555;
+    word = (word ^ (word >> 1 )) & 0x3333333333333333;
+    word = (word ^ (word >> 2 )) & 0x0f0f0f0f0f0f0f0f;
+    word = (word ^ (word >> 4 )) & 0x00ff00ff00ff00ff;
+    word = (word ^ (word >> 8 )) & 0x0000ffff0000ffff;
+    word = (word ^ (word >> 16)) & 0x00000000ffffffff;
+    return (uint32_t)word;
+}
+
+static inline uint16_t deinterleave_lowuint16(uint32_t word) {
+	word &= 0x55555555;
+    word = (word ^ (word >> 1 )) & 0x3333333;
+    word = (word ^ (word >> 2 )) & 0x0f0f0f0f;
+    word = (word ^ (word >> 4 )) & 0x00ff00ff;
+    word = (word ^ (word >> 8 )) & 0x0000ffff;
+    return (uint16_t)word;
+}
+
+typedef struct  {
+  uint32_t x;
+  uint32_t y;
+} point32;
+
+typedef struct  {
+  uint16_t x;
+  uint16_t y;
+} point16;
+
+uint64_t interleave32(point32 input)  {
+    return interleave_uint32_with_zeros(input.x) | (interleave_uint32_with_zeros(input.y) << 1);
+}
+
+point32 deinterleave32(uint64_t input)  {
+  point32 answer;
+  answer.x = deinterleave_lowuint32(input);
+  answer.y = deinterleave_lowuint32(input>>1);
+  return answer;
+}
+
+uint64_t interleave16(point32 input)  {
+    return interleave_uint32_with_zeros(input.x) | (interleave_uint32_with_zeros(input.y) << 1);
+}
+
+point32 deinterleave16(uint64_t input)  {
+  point32 answer;
+  answer.x = deinterleave_lowuint32(input);
+  answer.y = deinterleave_lowuint32(input>>1);
+  return answer;
+}
+
+
+
 constexpr uint32_t bits = 4;
 constexpr uint32_t limx = (1 << bits) * 2;
 uint32_t db[limx];
