@@ -1,2 +1,3 @@
-# Solutions for Advent of Code 2022
-Patrick Parsons
+# Solutions for Advent of Code Puzzles
+
+
